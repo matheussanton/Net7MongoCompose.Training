@@ -1,0 +1,43 @@
+version: "3.8"
+
+networks:
+  dev:
+    driver: bridge
+
+services:
+  mongodb_container:
+    image: mongo:latest
+    container_name: mongodb_container
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data_container:/data/db
+    networks:
+      - dev
+    restart: always
+
+  net7mongocomposetraining_container:
+    image: net7mongocompose.training:latest
+    depends_on:
+      - "mongodb_container"
+    ports:
+      - 3535:80
+    container_name: net7mongocompose.training
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Development
+      UserDatabaseConfiguration__ConnectionString: "mongodb://admin:admin@mongodb_container:27017"
+      UserDatabaseConfiguration__DatabaseName: "Test"
+      UserDatabaseConfiguration__CollectionName: "users"
+    networks:
+      - dev
+    restart: always
+
+volumes:
+  mongodb_data_container:
